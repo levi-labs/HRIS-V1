@@ -37,3 +37,17 @@ export const loginUser = async(username:string, password:string) =>{
     token
   });
 }
+
+export const registerUser = async(name:string, username:string, email:string, password:string) => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await prisma.user.create({
+    data : {
+      name,
+      username,
+      email,
+      password : hashedPassword,
+      roleId : 1
+    }
+  });
+  return user;
+}
