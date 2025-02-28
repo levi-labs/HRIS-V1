@@ -1,6 +1,6 @@
 import { Request, Response , RequestHandler} from "express";
 import { loginUser, registerUser } from "../services/auth.service.js";
-import { loginSchema, registerSchema } from "../validators/auth.validator.js";
+import { loginSchema, registerSchema } from "../validation/auth.validator.js";
 import { ZodError } from "zod";
 
 

@@ -12,9 +12,18 @@ export const loginUser = async(username:string, password:string) =>{
     where : {
       username : username,
     },
-    include : {
-      role : true
+   select : {
+    id : true,
+    name : true,
+    username : true,
+    email : true,
+    password : true,
+    role : {
+      select : {
+        name : true
+      }
     }
+   }
   });
 
   if(!user){
@@ -30,10 +39,12 @@ export const loginUser = async(username:string, password:string) =>{
   const token = jwt.sign({id:user.id ,role:user.role.name}, process.env.JWT_SECRET || "",{
     expiresIn : "1h"
   });
+  
+  const {password:__dirname, ...userWithoutPassword} = user;
   return ({ 
     message : "Login successful",
     status : 200,
-    user,
+    user : userWithoutPassword,
     token
   });
 }
@@ -47,7 +58,8 @@ export const registerUser = async(name:string, username:string, email:string, pa
       email,
       password : hashedPassword,
       roleId : 1
-    }
+    },
+    
   });
   return user;
 }
