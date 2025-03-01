@@ -1,6 +1,6 @@
 import { Request, Response , RequestHandler} from "express";
 import { loginUser, registerUser } from "../services/auth.service.js";
-import { loginSchema, registerSchema } from "../validation/auth.validator.js";
+import { loginSchema, registerSchema } from "../validations/auth.validation.js";
 import { ZodError } from "zod";
 
 
@@ -42,7 +42,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         message: "Validation Error",
         error: errorMessages,
       });
-        
     }
     res.status(500).json({
       message: error instanceof Error ? error.message : "Something went wrong",

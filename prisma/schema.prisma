@@ -34,3 +34,12 @@ model User {
 
   @@map("users")
 }
+
+model Department {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(80)
+  phone   String @db.VarChar(25)
+  address String @db.VarChar(150)
+
+  @@map("departments")
+}
