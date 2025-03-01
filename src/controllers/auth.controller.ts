@@ -42,6 +42,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         message: "Validation Error",
         error: errorMessages,
       });
+
     }
     res.status(500).json({
       message: error instanceof Error ? error.message : "Something went wrong",

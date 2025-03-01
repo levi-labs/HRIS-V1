@@ -1,6 +1,7 @@
 import { Request, Response,NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { generateAccessToken } from "../utils/tokenUtils.js";
 
 dotenv.config();
 
@@ -23,6 +24,37 @@ export const authMiddleware = (req:AuthRequest, res:Response, next:NextFunction)
             role : decodedToken.role
         };
         next();
+    } catch (error) {
+        res.status(401).json({ message: "Unauthorized" });
+    }
+}
+
+export const refreshTokenMiddleware = (req:AuthRequest, res:Response, next:NextFunction) => {
+    try {
+        const token = req.cookies.refresh_token;
+
+        if(!token){
+          return res.status(401).json({ message: "Unauthorized, Refresh token not found" });
+        }
+
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || "",(err:any,user:any)=> {
+        if(err){
+            return res.status(401).json({ message: "Refresh token is expired or invalid" });
+        }
+        req.user = {
+            id : user.id,
+            role : user.role
+        };
+        const newAccessToken = generateAccessToken({id : user.id, role : user.role});
+        res.cookie("access_token", newAccessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        res.status(200).send('Refresh token is valid');
+    });
     } catch (error) {
         res.status(401).json({ message: "Unauthorized" });
     }
