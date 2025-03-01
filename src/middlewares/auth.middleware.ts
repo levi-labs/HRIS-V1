@@ -4,12 +4,15 @@ import dotenv from "dotenv";
 import { generateAccessToken } from "../utils/tokenUtils.js";
 
 dotenv.config();
-
+interface User{
+    id:number,
+    role:string
+}
 export interface AuthRequest extends Request {
-    user?:{
-        id:number,
-        role:string
-    };
+    cookies: {
+        refresh_token: string
+    }
+    user?:User;
 }
 
 export const authMiddleware = (req:AuthRequest, res:Response, next:NextFunction) => {
@@ -34,10 +37,11 @@ export const refreshTokenMiddleware = (req:AuthRequest, res:Response, next:NextF
         const token = req.cookies.refresh_token;
 
         if(!token){
-          return res.status(401).json({ message: "Unauthorized, Refresh token not found" });
+          res.status(401).json({ message: "Unauthorized, Refresh token not found" });
+          return;
         }
 
-    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || "",(err:any,user:any)=> {
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || "",(err:jwt.VerifyErrors | null,user:any) => {
         if(err){
             return res.status(401).json({ message: "Refresh token is expired or invalid" });
         }
@@ -45,6 +49,9 @@ export const refreshTokenMiddleware = (req:AuthRequest, res:Response, next:NextF
             id : user.id,
             role : user.role
         };
+        if(!user){
+            return res.status(401).json({ message: "Unauthorized" });
+        }
         const newAccessToken = generateAccessToken({id : user.id, role : user.role});
         res.cookie("access_token", newAccessToken, {
             httpOnly: true,
@@ -53,7 +60,9 @@ export const refreshTokenMiddleware = (req:AuthRequest, res:Response, next:NextF
             maxAge: 24 * 60 * 60 * 1000
         });
 
-        res.status(200).send('Refresh token is valid');
+        res.status(200).json({ message: "Refresh token is valid" });
+
+        return next();
     });
     } catch (error) {
         res.status(401).json({ message: "Unauthorized" });
