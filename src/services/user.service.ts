@@ -40,3 +40,29 @@ export const getUserById = async (id: number) => {
     });
     return user;
 };
+
+export const createUser = async (data: any) => {
+    const user = await prisma.user.create({
+        data : data
+    });
+    return user;
+};
+
+export const updateUser = async (id: number, data: any) => {
+    const user = await prisma.user.update({
+        where : {
+            id : id
+        },
+        data : data
+    });
+    return user;
+};
+
+export const deleteUser = async (id: number) => {
+    const user = await prisma.user.delete({
+        where : {
+            id : id
+        }
+    });
+    return user;
+};
