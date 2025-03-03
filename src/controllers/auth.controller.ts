@@ -25,7 +25,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const validatedData = registerSchema.parse(req.body);
    
     const user = await registerUser(
-        validatedData.name,
         validatedData.username,
         validatedData.email, 
         validatedData.password

@@ -23,7 +23,6 @@ model Role {
 
 model User {
   id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(60)
   username  String   @unique @db.VarChar(40)
   email     String   @unique @db.VarChar(60)
   password  String   @db.VarChar(255)
@@ -36,10 +35,23 @@ model User {
 }
 
 model Department {
-  id      Int    @id @default(autoincrement())
-  name    String @db.VarChar(80)
-  phone   String @db.VarChar(25)
-  address String @db.VarChar(150)
+  id          Int           @id @default(autoincrement())
+  name        String        @db.VarChar(80)
+  phone       String        @db.VarChar(25)
+  address     String        @db.VarChar(150)
+  JobPosition JobPosition[]
 
   @@map("departments")
+}
+
+model JobPosition {
+  id            Int         @id @default(autoincrement())
+  name          String      @db.VarChar(80)
+  level         String      @db.VarChar(20)
+  salary_min    Decimal     @db.Decimal(18, 2)
+  salary_max    Decimal     @db.Decimal(18, 2)
+  department_id Int?        @db.Int
+  department    Department? @relation(fields: [department_id], references: [id])
+
+  @@map("job_positions")
 }

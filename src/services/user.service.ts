@@ -7,7 +7,6 @@ export const getAllUsers = async () => {
         {
             select : {
                 id : true,
-                name : true,
                 username : true,
                 email : true,
                 role : {
@@ -28,7 +27,6 @@ export const getUserById = async (id: number) => {
         },
         select : {
             id : true,
-            name : true,
             username : true,
             email : true,
             role : {
