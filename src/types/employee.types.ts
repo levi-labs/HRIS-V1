@@ -4,4 +4,5 @@ export interface IEmployee {
     last_name: string;
     job_position_id: number;
     userId: number;
+    office_id: number;
 }
