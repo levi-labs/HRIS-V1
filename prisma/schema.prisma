@@ -22,14 +22,15 @@ model Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique @db.VarChar(40)
-  email     String   @unique @db.VarChar(60)
-  password  String   @db.VarChar(255)
-  roleId    Int      @db.Int
-  role      Role     @relation(fields: [roleId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int        @id @default(autoincrement())
+  username  String     @unique @db.VarChar(40)
+  email     String     @unique @db.VarChar(60)
+  password  String     @db.VarChar(255)
+  roleId    Int        @db.Int
+  role      Role       @relation(fields: [roleId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Employee  Employee[]
 
   @@map("users")
 }
@@ -52,6 +53,19 @@ model JobPosition {
   salary_max    Decimal     @db.Decimal(18, 2)
   department_id Int?        @db.Int
   department    Department? @relation(fields: [department_id], references: [id])
+  Employee      Employee[]
 
   @@map("job_positions")
+}
+
+model Employee {
+  id              Int         @id @default(autoincrement())
+  first_name      String      @db.VarChar(60)
+  last_name       String      @db.VarChar(60)
+  userId          Int
+  user            User        @relation(fields: [userId], references: [id])
+  job_position_id Int
+  job_position    JobPosition @relation(fields: [job_position_id], references: [id])
+
+  @@map("employees")
 }
