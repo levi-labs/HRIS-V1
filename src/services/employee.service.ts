@@ -30,7 +30,7 @@ export class EmployeeService {
         return employee;
     }
 
-    static async createEmployee(data: Employee): Promise<Employee> {
+    static async createEmployee(data: IEmployee): Promise<Employee> {
         const employee = await prisma.employee.create({
             data : data
         });

@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from "express";
+import e, { Request, Response, NextFunction } from "express";
 import { EmployeeService } from "../services/employee.service.js";
+import { employeeSchema } from "../validations/employee.validation.js";
 
 
 
@@ -40,7 +41,8 @@ export const show = async (req: Request, res: Response, next: NextFunction): Pro
 
 export const create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const employee = await EmployeeService.createEmployee(req.body);
+        const validatedData = employeeSchema.parse(req.body);
+        const employee = await EmployeeService.createEmployee(validatedData);
         res.status(201).json({
             statusCode: 201,
             message: "Success",
@@ -58,7 +60,8 @@ export const create = async (req: Request, res: Response, next: NextFunction): P
 export const update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const id = parseInt(req.params.id);
-        const employee = await EmployeeService.updateEmployee(id, req.body);
+        const validatedData = employeeSchema.parse(req.body);
+        const employee = await EmployeeService.updateEmployee(id, validatedData);
         res.status(200).json({
             statusCode: 200,
             message: "Success",
