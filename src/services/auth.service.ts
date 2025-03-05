@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { generateAccessToken } from "../utils/tokenUtils.js";
 
-dotenv.config();
+
 
 const prisma = new PrismaClient();
 
