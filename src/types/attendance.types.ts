@@ -14,8 +14,15 @@ export interface IAttendanceCheckIn {
     checkIn: string;
     checkOut?: string | null;
     status: string;
-    latitude: number;
-    longitude: number;
+    latitude: string;
+    longitude: string;
+}
+
+export interface IAttendanceCheckInResponse {
+    message: string;
+    attendanceID: number;
+    checkInTime: string;
+    status: string;
 }
 
 export interface IAttendanceResponse {

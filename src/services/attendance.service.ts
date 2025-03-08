@@ -1,7 +1,8 @@
 
 import { Attendance } from "@prisma/client";
 import prisma from "../config/prismaClient.js";
-import { IAttendanceResponse, IAttendance, IAttendanceCheckIn } from "../types/attendance.types.js";
+import { IAttendanceResponse, IAttendance, IAttendanceCheckIn,IAttendanceCheckInResponse } from "../types/attendance.types.js";
+import  {Decimal} from "decimal.js";
 export const getAll = async () => {
     const attendances = await prisma.attendance.findMany();
     return attendances;
@@ -88,14 +89,35 @@ export const removeAttendance = async (id: number): Promise<Attendance> => {
     return attendance;
 }
 
-export const checkInAttendance = async (data: IAttendanceCheckIn) => {
+export const checkInAttendance = async (data: IAttendanceCheckIn): Promise<IAttendanceCheckInResponse> => {
     const checkInTime = new Date(data.checkIn);
     const hour = checkInTime.getHours();
     const minute = checkInTime.getMinutes();
+    //make convert to decimal
+    const latitude = new Decimal(data.latitude);
+    const longitude = new Decimal(data.longitude);
 
+    const employeeId = await prisma.employee.findFirst({
+        where : {
+            id : data.employeeId
+        },
+        include : {
+            Office : true
+        }
+    });
+    const checkOfficeLocation = await prisma.office.findUnique({
+        where : {
+            id : employeeId?.Office.id
+        }
+    })
     if (hour < 8 || (hour === 9 && minute > 0)) {
         throw new Error("Check-in time must be between 8:00 and 9:00 ");
     }
+    
+    if (latitude !== checkOfficeLocation?.latitude || longitude !== checkOfficeLocation?.longitude) {
+        throw new Error("Check-in location must be in office location");
+    }
+    
     return await prisma.$transaction(async (tx) => {
             const attendance = await tx.attendance.create({
                 data: {
@@ -107,7 +129,7 @@ export const checkInAttendance = async (data: IAttendanceCheckIn) => {
                 }
             });
 
-         await tx.geolocation.create({
+            await tx.geolocation.create({
                 data :{
                     checkInLatitude: data.latitude,
                     checkInLongitude: data.longitude,
@@ -121,6 +143,6 @@ export const checkInAttendance = async (data: IAttendanceCheckIn) => {
                 checkInTime : attendance.checkIn.toISOString(),
                 status : attendance.status
             }
-        });
+    });
     
 }
