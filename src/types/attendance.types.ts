@@ -12,7 +12,14 @@ export interface IAttendanceCheckIn {
     employeeId: number;
     date:string;
     checkIn: string;
-    checkOut?: string | null;
+    status: string;
+    latitude: string;
+    longitude: string;
+}
+export interface IAttendanceCheckOut {
+    employeeId: number;
+    date:string;
+    checkOut: string;
     status: string;
     latitude: string;
     longitude: string;
@@ -22,6 +29,12 @@ export interface IAttendanceCheckInResponse {
     message: string;
     attendanceID: number;
     checkInTime: string;
+    status: string;
+}
+export interface IAttendanceCheckOutResponse {
+    message: string;
+    attendanceID: number;
+    checkOutTime: string;
     status: string;
 }
 

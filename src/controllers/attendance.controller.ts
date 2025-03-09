@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getAll, getById, updateAttendance, removeAttendance, createAttendance, checkInAttendance } from "../services/attendance.service.js";
+import { getAll, getById, updateAttendance, removeAttendance, createAttendance, checkInAttendance, checkOutAttendance } from "../services/attendance.service.js";
 import { attendanceSchema } from "../validations/attendance.validation.js";
 
 export const index = async (req: Request, res: Response, next: NextFunction) => {
@@ -48,7 +48,7 @@ export const show = async (req: Request, res: Response, next: NextFunction) => {
 export const checkIn = async (req:Request, res: Response,next: NextFunction): Promise<void> => {
     try {
         const data = await checkInAttendance(req.body);
-        res.status(200).json({
+        res.status(201).json({
             statusCode: 201,
             message: data.message,
             data : data
@@ -62,6 +62,22 @@ export const checkIn = async (req:Request, res: Response,next: NextFunction): Pr
     }
 }
 
+export const checkOut = async (req:Request, res: Response):Promise<void> => {
+    try {
+        const data = await checkOutAttendance(req.body);
+        res.status(201).json({
+            statusCode: 201,
+            message: data.message,
+            data: data
+        });
+    } catch (error) {
+        res.status(500).json({
+            statusCode: 500,
+            message: "Something went wrong",
+            error: error instanceof Error? error.message :undefined
+        });
+    }
+}
 
 export const destroy = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

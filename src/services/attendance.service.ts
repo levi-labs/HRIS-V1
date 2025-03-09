@@ -1,8 +1,9 @@
 
 import { Attendance } from "@prisma/client";
 import prisma from "../config/prismaClient.js";
-import { IAttendanceResponse, IAttendance, IAttendanceCheckIn,IAttendanceCheckInResponse } from "../types/attendance.types.js";
+import { IAttendanceResponse, IAttendance, IAttendanceCheckIn, IAttendanceCheckOut,IAttendanceCheckInResponse ,IAttendanceCheckOutResponse} from "../types/attendance.types.js";
 import  {Decimal} from "decimal.js";
+import { haversineFormula } from "../utils/harvesine.js";
 export const getAll = async () => {
     const attendances = await prisma.attendance.findMany();
     return attendances;
@@ -105,11 +106,19 @@ export const checkInAttendance = async (data: IAttendanceCheckIn): Promise<IAtte
             Office : true
         }
     });
+    
     const checkOfficeLocation = await prisma.office.findUnique({
         where : {
             id : employeeId?.Office.id
         }
-    })
+    });
+
+    const distance =  haversineFormula(
+        checkOfficeLocation!.latitude.toNumber(),
+        checkOfficeLocation!.longitude.toNumber(),
+        latitude.toNumber(),
+        longitude.toNumber()
+    )
     if (hour < 8 || (hour === 9 && minute > 0)) {
         throw new Error("Check-in time must be between 8:00 and 9:00 ");
     }
@@ -145,4 +154,90 @@ export const checkInAttendance = async (data: IAttendanceCheckIn): Promise<IAtte
             }
     });
     
+}
+
+export const checkOutAttendance = async (data: IAttendanceCheckOut): Promise<IAttendanceCheckOutResponse> => {
+    const checkOutTime = new Date(data.checkOut);
+    const hour = checkOutTime.getHours();
+    const minute = checkOutTime.getMinutes(); 
+    const latitude = new Decimal(data.latitude);
+    const longitude = new Decimal(data.longitude);
+
+    const employeeId = await prisma.employee.findUnique({
+        where : {
+            id : data.employeeId
+        },
+        include : {
+            Office : true
+        }
+
+    });
+    const checkOfficeLocation = await prisma.office.findUnique({
+        where : {
+            id : employeeId?.office_id
+        }
+    });
+
+    const distance = haversineFormula(
+        checkOfficeLocation!.latitude.toNumber(), 
+        checkOfficeLocation!.longitude.toNumber(), 
+        latitude.toNumber(), 
+        longitude.toNumber()
+    );
+
+    if (hour < 17 || (hour === 17 && minute > 0)) {
+        throw new Error("Check-out time must be between 05:00 PM and 09:30 PM");
+    }
+    
+    if (distance > 100 ) {
+        throw new Error("Check-out denied. You are outside the permitted distance range.");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+       
+        const attendance = await tx.attendance.findFirst({
+            where : {
+                id : data.employeeId
+            }
+        });
+
+        if (!attendance) {
+            throw new Error("Attendance not found");
+        }
+
+        await tx.attendance.update({
+            where : {
+                id : data.employeeId
+            },
+            data : {
+                checkOut : checkOutTime,
+                status : hour >= 17 && minute >= 0 ? "Present" : "Overtime"
+            }
+        });
+
+        const geolocation = await tx.geolocation.findFirst({
+            where : {
+                attendance_id : attendance.id
+            }
+        });
+        if (!geolocation) {
+            throw new Error("Geolocation not found");
+        }
+       
+        await tx.geolocation.update({
+            where : {
+                id : geolocation.id
+            },
+            data : {
+                checkOutLatitude : data.latitude,
+                checkOutLongitude : data.longitude
+            }
+        });
+        return {
+            message : "Check-out successfully",
+            attendanceID : attendance.id,
+            checkOutTime : attendance.checkOut?.toISOString() || '',
+            status : attendance.status
+        }
+    });
 }
