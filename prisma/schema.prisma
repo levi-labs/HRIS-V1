@@ -120,8 +120,8 @@ model LeaveRequest {
   endDate    DateTime @db.Date
   reason     String   @db.VarChar(120)
   status     String   @db.VarChar(15)
-  approvedBy Int
-  approver   User     @relation(fields: [approvedBy], references: [id])
+  approvedBy Int?
+  approver   User?    @relation(fields: [approvedBy], references: [id])
 
   @@map("leave_requests")
 }
